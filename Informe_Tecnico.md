@@ -128,3 +128,19 @@ Este informe resume los resultados obtenidos en las cuatro fases del proyecto de
 - La prueba de causalidad de Granger aportó evidencia de que el factor de potencia (`Ener_10`) ayuda a predecir el voltaje (`Ener_9`) en ciertos rezagos, reforzando la interpretación física del sistema eléctrico.
 - En el ámbito geo-agro, el cruce de bajo NDVI con indicadores de pendiente y estrés eólico orientó la toma de decisiones hacia intervenciones focalizadas, en lugar de inversiones generalizadas.
 - Finalmente, el contraste de modelos ARIMAX con y sin centralidad del nodo mostró que, para este conjunto de datos y especificación, la importancia topológica de los nodos no mejora la capacidad predictiva sobre la demanda, lo que sugiere explorar otras formas de integrar la información de red o probar órdenes/modelos alternativos.
+
+---
+
+## 7. Preguntas de Validación (Auto-Evaluación)
+
+**1. Sobre la Estacionariedad:**  
+No es válido aplicar directamente un análisis de correlación de Pearson sobre series con tendencia (como NDVI o un precio de exportación) porque la correlación asume variables aproximadamente estacionarias (media y varianza constantes). Cuando ambas series tienen tendencia, pueden mostrar una correlación alta simplemente porque “suben juntas” en el tiempo, aunque no exista relación causal real entre ellas: es la llamada correlación espuria. Para evitarlo, es necesario primero eliminar la tendencia (por ejemplo, diferenciando o ajustando y restando una tendencia) y trabajar con las series estacionarizadas antes de calcular la correlación.
+
+**2. Sobre el SNR (ruido de 5 dB):**  
+Inyectar ruido con un SNR de 5 dB implica que la potencia del ruido es relativamente alta respecto a la señal, lo que afecta directamente la estimación de los coeficientes del modelo ARMA. En términos prácticos, los coeficientes estimados con la serie ruidosa tienden a ser más inestables: aumenta la varianza de los estimadores (intervalos de confianza más amplios), pueden sesgarse ligeramente al intentar “absorber” parte del ruido como si fuera dinámica propia de la señal y el ajuste global (por ejemplo medido por AIC o RMSE) suele ser peor que en la versión limpia. En resumen, el ruido de 5 dB deteriora la precisión y la interpretabilidad de los coeficientes ARMA frente al caso clean.
+
+**3. Sobre la Topología (sensor como “bridge”):**  
+Si un sensor es un “bridge” (puente) en el grafo, significa que muchos caminos entre otras partes de la red pasan necesariamente por él. La interpretación de su fallo cambia radicalmente: ya no es solo un nodo que deja de medir, sino un punto crítico cuya caída puede fragmentar la red en varios componentes desconectados. Operativamente, su fallo puede aislar grupos de sensores o subestaciones, dificultando el monitoreo, la redundancia de rutas y la capacidad de reacción ante eventos. Desde la perspectiva de inteligencia de red, un bridge tiene prioridad alta en mantenimiento y robustez, porque concentrar tráfico o información en él lo convierte en un punto único de fallo.
+
+**4. Sobre la Geo-Inteligencia (posición geográfica y varianza):**  
+La posición geográfica influye en la varianza de la señal porque condiciona las condiciones físicas locales: relieve, exposición al viento, sombra, humedad, cercanía a bordes de cultivos, etc. Sensores ubicados en zonas de transición (por ejemplo, cambios de pendiente o zonas expuestas a ráfagas de viento) suelen mostrar mayor variabilidad temporal que aquellos situados en áreas más homogéneas y protegidas. En el contexto del proyecto, esto se refleja en que regiones con mayor pendiente o mayor varianza de viento (según las coordenadas GPS y el `slope_proxy`) presentan series agro más fluctuantes, mientras que zonas más planas y resguardadas tienden a mostrar señales más estables. Así, la geolocalización del sensor es un factor clave para interpretar la dispersión y la estabilidad de las mediciones, y para definir microzonas de intervención.
